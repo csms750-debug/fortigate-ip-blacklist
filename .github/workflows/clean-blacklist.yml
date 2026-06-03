@@ -6,8 +6,8 @@ on:
       - "blacklist.txt"
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+permissions:
+  contents: write
 
 jobs:
   clean:
@@ -19,13 +19,16 @@ jobs:
 
       - name: Clean duplicates
         run: |
-          sort blacklist.txt | uniq > blacklist_clean.txt
-          mv blacklist_clean.txt blacklist.txt
+          sort blacklist.txt | uniq > tmp.txt
+          mv tmp.txt blacklist.txt
 
       - name: Commit changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+
           git add blacklist.txt
-          git diff --cached --quiet || git commit -m "Auto-clean duplicates"
+
+          git diff --cached --quiet && exit 0 || git commit -m "Auto-clean duplicates"
+
           git push
