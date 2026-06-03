@@ -1,4 +1,4 @@
-name: Clean IP blacklist (deduplicate)
+name: Clean IP blacklist (deduplicate + remove empty lines)
 
 on:
   push:
@@ -17,9 +17,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Clean duplicates
+      - name: Clean blacklist (remove empty lines + duplicates)
         run: |
-          sort blacklist.txt | uniq > tmp.txt
+          cat blacklist.txt \
+          | sed '/^\s*$/d' \
+          | sed 's/^[ \t]*//;s/[ \t]*$//' \
+          | sort \
+          | uniq \
+          > tmp.txt
+
           mv tmp.txt blacklist.txt
 
       - name: Commit changes
@@ -29,6 +35,6 @@ jobs:
 
           git add blacklist.txt
 
-          git diff --cached --quiet && exit 0 || git commit -m "Auto-clean duplicates"
+          git diff --cached --quiet && exit 0 || git commit -m "Auto-clean blacklist (dedup + remove empty lines)"
 
           git push
