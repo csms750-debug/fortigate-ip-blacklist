@@ -17,13 +17,13 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Clean blacklist (remove empty lines + duplicates)
+      - name: Clean blacklist
         run: |
           cat blacklist.txt \
-          | sed '/^\s*$/d' \
-          | sed 's/^[ \t]*//;s/[ \t]*$//' \
-          | sort \
-          | uniq \
+          | tr ',' '\n' \
+          | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
+          | sed '/^$/d' \
+          | sort -u \
           > tmp.txt
 
           mv tmp.txt blacklist.txt
@@ -35,6 +35,7 @@ jobs:
 
           git add blacklist.txt
 
-          git diff --cached --quiet && exit 0 || git commit -m "Auto-clean blacklist (dedup + remove empty lines)"
+          git diff --cached --quiet && exit 0 || \
+          git commit -m "Auto-clean blacklist"
 
           git push
